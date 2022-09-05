@@ -1,0 +1,50 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# shell provisioner code
+$script = <<-SCRIPT
+
+  # copy public key to vagrant user
+  ssh_public_key=/vagrant/id_rsa.pub
+  if test -f "$ssh_public_key" ; then
+    echo "Check if public key $ssh_public_key is valid."
+    if ssh-keygen -l -f "$ssh_public_key" ; then
+      echo "Add public key to /home/vagrant/.ssh/authorized_keys"
+      cat "$ssh_public_key" >> /home/vagrant/.ssh/authorized_keys
+    fi
+  fi
+
+  curl -q -L "https://github.com/docker/compose/releases/download/v2.6.0/docker-compose-$(uname -s)-$(uname -m)" \
+    -o /usr/local/bin/docker-compose
+  chmod a+x /usr/local/bin/docker-compose
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+  config.disksize.size = '100GB'
+  config.vm.box_check_update = true
+  config.vm.network "private_network", ip: "192.168.56.12"
+  config.ssh.insert_key = true
+  config.vm.hostname = "nexus-192-168-56-12.nip.io"
+  # config.vbguest.auto_update = false
+
+  puts " "
+  puts " Nexus3"
+  puts " "
+  puts " Hostname: nexus-192-168-56-12.nip.io"
+  puts " IP:       192.168.56.12"
+  puts " "
+
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = false
+    vb.memory = "4096"
+    vb.cpus = 2
+    vb.name = "nexus-12"
+  end
+
+  config.vm.provision "docker"
+  config.vm.provision "shell", inline: $script
+
+end

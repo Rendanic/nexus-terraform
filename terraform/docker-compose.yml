@@ -1,0 +1,16 @@
+---
+version: '2.3'
+services:
+  terraform:
+    container_name: terratools
+    image: rendanic/terratools:1.0.11
+    hostname: terratools-1.0.11
+    working_dir: /git/terraform
+    volumes:
+      # binding for workdir
+      - type: bind
+        source: ${GIT_SOURCE_FOLDER-./}
+        target: /git
+
+    environment:
+     - "PS1=$${HOSTNAME}:$$(pwd) $$ "
